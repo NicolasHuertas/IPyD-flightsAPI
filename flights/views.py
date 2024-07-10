@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from .serializers import FlightSerializer, ReservationSerializer
 from .models import Flight, Reservation
@@ -31,3 +33,10 @@ class ReservationViewSet(viewsets.ModelViewSet):
             raise ValidationError({"error": "This seat is already booked."})
         else:
             serializer.save()
+    
+    @action(detail=True, methods=['post'])
+    def cancel(self, request, pk=None):
+        reservation = Reservation.objects.get(pk=pk)
+        reservation.cancelled = True
+        reservation.save()
+        return Response({"message": "Reservation cancelled."}, status=status.HTTP_200_OK)
